@@ -1,0 +1,32 @@
+node_modules
+Dockerfile
+Dockerfile.*
+
+# Terraform
+.terraform/
+.terraform.lock.hcl
+
+
+
+./terraform/.terraform/
+./terraform/.terraform.lock.hcl
+./terraform/remote-backend/.terraform
+
+terraform/.idea/terraform.iml
+terraform/.terraform.lock.hcl
+
+*.tfstate
+*.tfstate.*
+crash.log
+
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Variáveis locais
+*.tfvars
+*.tfvars.json
+
+# macOS
+.DS_Store

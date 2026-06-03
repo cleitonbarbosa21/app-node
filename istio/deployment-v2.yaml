@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: devops-app-v2
+  namespace: devops-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: devops-app
+      version: v2
+  template:
+    metadata:
+      labels:
+        app: devops-app
+        version: v2
+    spec:
+      containers:
+      - name: devops-app
+        image: gcr.io/descomplicando-devops/devops-app-gcp:v1.0
+        ports:
+        - containerPort: 8080

@@ -1,0 +1,16 @@
+# istio/virtual-service.yaml
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: devops-app-routing
+  namespace: devops-app
+spec:
+  hosts:
+  - "devops-app.local"
+  gateways:
+  - devops-app-gateway
+  http:
+  - route:
+    - destination:
+        host: devops-app-service
+        subset: v1
