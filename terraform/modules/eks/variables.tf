@@ -6,7 +6,7 @@ variable "project_name" {
 
 variable "vpc_id" {
   description = "ID da VPC onde o cluster EKS será criado"
-  type        = string  
+  type        = string
 }
 
 
@@ -16,7 +16,7 @@ variable "subnet_ids" {
 
 
 variable "cluster_version" {
-  type    = string
+  type = string
 }
 
 variable "node_instance_type" {

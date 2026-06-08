@@ -12,8 +12,8 @@ resource "aws_eks_cluster" "this" {
   }
 
   vpc_config {
-    subnet_ids = var.subnet_ids
-    endpoint_public_access = true
+    subnet_ids              = var.subnet_ids
+    endpoint_public_access  = true
     endpoint_private_access = true
   }
 
@@ -120,7 +120,7 @@ resource "aws_iam_role_policy_attachment" "eks_cluster_ng_AmazonSSMManagedInstan
 
 ### ECR Repository for Application Images
 resource "aws_ecr_repository" "this" {
-  name                 = "arcampos-app"
+  name                 = "node-app"
   image_tag_mutability = "MUTABLE"
 
   image_scanning_configuration {
@@ -128,6 +128,6 @@ resource "aws_ecr_repository" "this" {
   }
 
   tags = {
-    Name = "arcampos-app"
+    Name = "node-app"
   }
 }

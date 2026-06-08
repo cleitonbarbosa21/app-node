@@ -1,3 +1,7 @@
+# busca a conta AWS atual
+data "aws_caller_identity" "current" {}
+
+
 #### Create OIDC provider for GitHub Actions
 resource "aws_iam_openid_connect_provider" "github" {
   url = "https://token.actions.githubusercontent.com"
@@ -40,7 +44,7 @@ resource "aws_iam_role" "github" {
 ### IAM Policy for GitHub Actions to access ECR
 resource "aws_iam_role_policy" "github_actions" {
   name = "${var.project_name}-github-actions-policy"
-  role = aws_iam_role.github_actions.id
+  role = aws_iam_role.github.id
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -77,12 +81,6 @@ resource "aws_iam_role_policy" "github_actions" {
       }
     ]
   })
-}
-
-#### Attach IAM Policy to GitHub Role
-resource "aws_iam_role_policy_attachment" "github" {
-  policy_arn = aws_iam_role_policy.github_actions.arn
-  role       = aws_iam_role.github.name
 }
 
 #### Output the ARN of the GitHub Actions role
