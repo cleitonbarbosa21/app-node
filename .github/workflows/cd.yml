@@ -5,13 +5,16 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+permissions:
+  id-token: write
+  contents: read
+
 env:
-  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-  GKE_CLUSTER: ${{ secrets.GKE_CLUSTER }}
-  GKE_ZONE: ${{ secrets.GKE_ZONE }}
-  DEPLOYMENT_NAME: devops-app
-  IMAGE: devops-app-gcp
-  NAMESPACE: devops-app
+  AWS_REGION: us-east-1
+  EKS_CLUSTER: arcampos-eks-cluster
+  DEPLOYMENT_NAME: node-app
+  IMAGE: node-app
+  NAMESPACE: node-app
 
 jobs:
   deploy:
@@ -20,76 +23,77 @@ jobs:
     environment: production
     
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Authenticate to Google Cloud
-      uses: google-github-actions/auth@v2
-      with:
-        credentials_json: ${{ secrets.GCP_SA_KEY }}
-    
-    - name: Setup Google Cloud CLI
-      uses: google-github-actions/setup-gcloud@v1
-      with:
-        service_account_key: ${{ secrets.GCP_SA_KEY }}
-        project_id: ${{ secrets.GCP_PROJECT_ID }}
-        export_default_credentials: true
-    
-    - name: Configure Docker for Artifact Registry
-      run: |
-        gcloud auth configure-docker us-central1-docker.pkg.dev
-        gcloud auth configure-docker gcr.io
-    
-    - name: Get GKE credentials
-      run: |
-        gcloud container clusters get-credentials ${{ secrets.GKE_CLUSTER }} \
-          --zone=${{ secrets.GKE_ZONE }} \
-          --project=${{ secrets.GCP_PROJECT_ID }}
-    
-    - name: Build Docker image
-      run: |
-        docker build -t gcr.io/$PROJECT_ID/$IMAGE:$GITHUB_SHA \
-          -t gcr.io/$PROJECT_ID/$IMAGE:latest .
-    
-    - name: Push Docker image
-      run: |
-        docker push gcr.io/$PROJECT_ID/$IMAGE:$GITHUB_SHA
-        docker push gcr.io/$PROJECT_ID/$IMAGE:latest
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
 
-    - name: Install GKE gcloud auth plugin
-      run: |
-        gcloud components install gke-gcloud-auth-plugin
-        export USE_GKE_GCLOUD_AUTH_PLUGIN=True
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
 
-    - name: Deploy to GKE
-      run: |
-        kubectl set image deployment/$DEPLOYMENT_NAME \
-          $DEPLOYMENT_NAME=gcr.io/$PROJECT_ID/$IMAGE:$GITHUB_SHA \
-          -n $NAMESPACE
-        kubectl rollout status deployment/$DEPLOYMENT_NAME \
-          -n $NAMESPACE --timeout=300s
-        kubectl get pods -n $NAMESPACE -l app=$DEPLOYMENT_NAME
+      - name: Build Docker Image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }} .
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }} \
+                     $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+      - name: Push Docker Image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }}
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+      - name: Configure kubectl for EKS
+        run: |
+          aws eks update-kubeconfig \
+            --region $AWS_REGION \
+            --name $EKS_CLUSTER
+
+      - name: Verify Cluster Access
+        run: |
+          kubectl get nodes
+
+      - name: Deploy Application
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          kubectl set image deployment/$DEPLOYMENT_NAME \
+            $CONTAINER_NAME=$ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }} \
+            -n $NAMESPACE
+
+      - name: Wait for Rollout
+        run: |
+          kubectl rollout status deployment/$DEPLOYMENT_NAME \
+            -n $NAMESPACE --timeout=300s
     
-    - name: Run smoke tests
-      run: |
-        EXTERNAL_IP=$(kubectl get service devops-app-service -n $NAMESPACE \
-          -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-        
-        for i in {1..30}; do
-          if [ ! -z "$EXTERNAL_IP" ]; then
-            break
-          fi
-          echo "Aguardando IP externo... ($i/30)"
-          sleep 10
-          EXTERNAL_IP=$(kubectl get service devops-app-service -n $NAMESPACE \
+      - name: Run smoke tests
+        run: |
+          EXTERNAL_IP=$(kubectl get service node-app-service -n $NAMESPACE \
             -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-        done
-        
-        if [ -z "$EXTERNAL_IP" ]; then
-          echo "ERRO: IP externo não foi atribuído"
-          exit 1
-        fi
-        
-        curl -f --max-time 10 http://$EXTERNAL_IP/health
-        curl -f --max-time 10 http://$EXTERNAL_IP/api/info
-        echo "Deploy realizado com sucesso!"
+          
+          for i in {1..30}; do
+            if [ ! -z "$EXTERNAL_IP" ]; then
+              break
+            fi
+            echo "Aguardando IP externo... ($i/30)"
+            sleep 10
+            EXTERNAL_IP=$(kubectl get service node-app-service -n $NAMESPACE \
+              -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+          done
+          
+          if [ -z "$EXTERNAL_IP" ]; then
+            echo "ERRO: IP externo não foi atribuído"
+            exit 1
+          fi
+          
+          curl -f --max-time 10 http://$EXTERNAL_IP/health
+          curl -f --max-time 10 http://$EXTERNAL_IP/api/info
+          echo "Deploy realizado com sucesso!"

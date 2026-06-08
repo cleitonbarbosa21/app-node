@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 env:
-  NODE_VERSION: '18'
+  NODE_VERSION: '22'
 
 jobs:
   # Job 1: Testes e qualidade de código
@@ -76,13 +76,13 @@ jobs:
       with:
         context: .
         load: true
-        tags: devops-app-gcp:test
+        tags: node-app:test
         cache-from: type=gha
         cache-to: type=gha,mode=max
     
     - name: Test Docker image
       run: |
-        docker run -d --name test-app -p 3000:3000 devops-app-gcp:test
+        docker run -d --name test-app -p 3000:3000 node-app:test
         sleep 10
         curl -f http://localhost:3000/health || exit 1
         curl -f http://localhost:3000/api/info || exit 1
