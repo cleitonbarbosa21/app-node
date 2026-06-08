@@ -35,4 +35,5 @@ module "eks" {
   subnet_ids         = module.networking.private_subnet_ids
   cluster_version    = var.cluster_version
   node_instance_type = var.node_instance_type
+  github_role_arn    = aws_iam_role.github.arn
 }

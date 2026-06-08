@@ -24,3 +24,7 @@ variable "node_instance_type" {
   type        = string
 }
 
+variable "github_role_arn" {
+  description = "ARN da role do GitHub Actions"
+  type        = string
+}

@@ -118,6 +118,28 @@ resource "aws_iam_role_policy_attachment" "eks_cluster_ng_AmazonSSMManagedInstan
   role       = aws_iam_role.eks_cluster_ng.name
 }
 
+
+
+### OIDC Provider and GitHub Actions Role for EKS Access
+resource "aws_eks_access_entry" "github" {
+  cluster_name  = aws_eks_cluster.this.name
+  principal_arn = var.github_role_arn
+  type          = "STANDARD"
+}
+
+resource "aws_eks_access_policy_association" "github" {
+  cluster_name  = aws_eks_cluster.this.name
+  principal_arn = var.github_role_arn
+
+  policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+
+  access_scope {
+    type = "cluster"
+  }
+}
+
+
+
 ### ECR Repository for Application Images
 resource "aws_ecr_repository" "this" {
   name                 = "node-app"

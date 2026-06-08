@@ -88,3 +88,5 @@ output "github_actions_role_arn" {
   description = "ARN da role do GitHub Actions para acesso ao ECR"
   value       = aws_iam_role.github.arn
 }
+
+
