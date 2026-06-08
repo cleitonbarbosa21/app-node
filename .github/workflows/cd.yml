@@ -31,7 +31,7 @@ jobs:
           cache-dependency-path: app/package-lock.json
 
       - name: Instala dependências
-        working-directory: app
+        working-directory: app/src
         run: npm ci
       
       - name: Roda os testes
