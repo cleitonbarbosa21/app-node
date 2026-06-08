@@ -75,7 +75,7 @@ jobs:
           IMAGE_TAG: ${{ steps.meta.outputs.tag }}
         run: |
           docker build \
-            --file app/Dockerfile \
+            -f app/Dockerfile \
             --target production \
             -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
             -t $ECR_REGISTRY/$ECR_REPOSITORY:latest \
