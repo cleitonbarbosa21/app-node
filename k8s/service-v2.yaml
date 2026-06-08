@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: devops-app-service
-  namespace: devops-app
+  name: node-app-service
+  namespace: node-app
   labels:
-    app: devops-app
+    app: node-app
 spec:
   ports:
   - port: 80
@@ -12,4 +12,4 @@ spec:
     protocol: TCP
     name: http
   selector:
-    app: devops-app # Remove version selector
+    app: node-app # Remove version selector

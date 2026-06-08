@@ -1,8 +1,8 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: devops-app-ingress
-  namespace: devops-app
+  name: node-app-ingress
+  namespace: node-app
   annotations:
     kubernetes.io/ingress.class: "gce"
 spec:
@@ -13,6 +13,6 @@ spec:
         pathType: ImplementationSpecific
         backend:
           service:
-            name: devops-app-service
+            name: node-app-service
             port:
               number: 80

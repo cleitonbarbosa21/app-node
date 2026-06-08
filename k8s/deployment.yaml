@@ -1,23 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: devops-app
-  namespace: devops-app
+  name: node-app
+  namespace: node-app
   labels:
-    app: devops-app
+    app: node-app
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: devops-app
+      app: node-app
   template:
     metadata:
       labels:
-        app: devops-app
+        app: node-app
     spec:
       containers:
-      - name: devops-app
-        image: gcr.io/PROJECT_ID/devops-app-gcp:v1.0  # Substituir PROJECT_ID
+      - name: node-app
+        image: PLACEHOLDER_ECR_URL:latest
         ports:
         - containerPort: 3000
         env:
