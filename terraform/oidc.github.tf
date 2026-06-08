@@ -38,45 +38,54 @@ resource "aws_iam_role" "github" {
 
 
 ### IAM Policy for GitHub Actions to access ECR
-resource "aws_iam_policy" "github" {
-  name = "arcampos-github-policy"
+resource "aws_iam_role_policy" "github_actions" {
+  name = "${var.project_name}-github-actions-policy"
+  role = aws_iam_role.github_actions.id
 
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
-        Sid = "GetAuthorizationToken"
+        Sid    = "ECRAuth"
+        Effect = "Allow"
         Action = [
-          "ecr:GetAuthorizationToken",
+          "ecr:GetAuthorizationToken"
         ]
-        Effect   = "Allow"
         Resource = "*"
       },
       {
-        Sid = "AllowPushPull"
+        Sid    = "ECRPush"
+        Effect = "Allow"
         Action = [
-          "ecr:BatchGetImage",
           "ecr:BatchCheckLayerAvailability",
-          "ecr:CompleteLayerUpload",
           "ecr:GetDownloadUrlForLayer",
+          "ecr:BatchGetImage",
           "ecr:InitiateLayerUpload",
-          "ecr:PutImage",
-          "ecr:UploadLayerPart"
+          "ecr:UploadLayerPart",
+          "ecr:CompleteLayerUpload",
+          "ecr:PutImage"
         ]
-        Effect   = "Allow"
-        Resource = module.eks.ecr_repository_arn
-        
+        Resource = "arn:aws:ecr:${var.region}:${data.aws_caller_identity.current.account_id}:repository/node-app"
       },
+      {
+        Sid    = "EKSAccess"
+        Effect = "Allow"
+        Action = [
+          "eks:DescribeCluster"
+        ]
+        Resource = "arn:aws:eks:${var.region}:${data.aws_caller_identity.current.account_id}:cluster/${var.project_name}-eks-cluster"
+      }
     ]
   })
 }
 
 #### Attach IAM Policy to GitHub Role
 resource "aws_iam_role_policy_attachment" "github" {
-  policy_arn = aws_iam_policy.github.arn
+  policy_arn = aws_iam_role_policy.github_actions.arn
   role       = aws_iam_role.github.name
 }
 
+#### Output the ARN of the GitHub Actions role
 output "github_actions_role_arn" {
   description = "ARN da role do GitHub Actions para acesso ao ECR"
   value       = aws_iam_role.github.arn
