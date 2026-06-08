@@ -68,14 +68,17 @@ jobs:
       - name: Define a tag da imagem
         id: meta
         run: echo "tag=${GITHUB_SHA::8}" >> $GITHUB_OUTPUT
-         
-      - name: Debug files
+
+
+        
+      - name: Debug workspace
         run: |
           pwd
-          find . -name Dockerfile
+          echo "Arquivos na raiz:"
           ls -la
-          ls -la app
-
+          echo
+          echo "Dockerfiles encontrados:"
+          find . -name Dockerfile
 
       - name: Build e push da imagem
         env:
