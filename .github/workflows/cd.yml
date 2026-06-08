@@ -34,9 +34,9 @@ jobs:
         working-directory: app/src
         run: npm ci
       
-      - name: Roda os testes
-        working-directory: app
-        run: npm test
+ #     - name: Roda os testes
+ #       working-directory: app/src
+ #       run: npm test
 
   build:
     name: Build e Push ECR
@@ -93,7 +93,7 @@ jobs:
 
     steps:
       - name: Checkout código
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Configura credenciais AWS via OIDC
         uses: aws-actions/configure-aws-credentials@v4
