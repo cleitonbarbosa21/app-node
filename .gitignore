@@ -1,6 +1,6 @@
 node_modules
-Dockerfile
-Dockerfile.*
+#Dockerfile
+#Dockerfile.*
 
 # Terraform
 .terraform/
