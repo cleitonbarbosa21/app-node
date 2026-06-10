@@ -39,7 +39,7 @@ GitHub Actions
 
 
 # Estrutura do Projeto
-
+```text
 .
 ├── modules
 │   ├── networking
@@ -64,3 +64,4 @@ GitHub Actions
 ├── variables.tf
 ├── outputs.tf
 └── README.md
+```
