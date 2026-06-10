@@ -127,9 +127,6 @@ jobs:
         env:
           ECR_REGISTRY: ${{ needs.build.outputs.ecr_url }}
           IMAGE_TAG: ${{ needs.build.outputs.image_tag }}
-          DB_HOST: ${{ secrets.DB_HOST }}
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
         run: |
           sed -i "s|PLACEHOLDER_ECR_URL|$ECR_REGISTRY/$ECR_REPOSITORY|g" k8s/deployment.yaml
           sed -i "s|:latest|:$IMAGE_TAG|g" k8s/deployment.yaml
